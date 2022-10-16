@@ -50,8 +50,7 @@ async function scrap(date, year, month, day) {
     scraped = `{"${scraped.substring(22).slice(0, -1).replaceAll(',""', '')}}`;
     const weather = JSON.parse(scraped);
     weather.Fecha = date;
-    //console.log(weather);
-    weatherAsJson.push(weather);
+    return weather;
 }
 
 function getDatesInRange(startDate, endDate) {
@@ -63,7 +62,32 @@ function getDatesInRange(startDate, endDate) {
         dates.push(new Date(date));
         date.setDate(date.getDate() + 1);
     }
+    console.log(dates);
     return dates;
+}
+
+async function saveToJsonTempFile(object) {
+    let content = await getJsonTempContent();
+    content.push(object);
+    const json = JSON.stringify(content, null, 4);
+    try {
+        await fs.promises.writeFile('temp.json', json, 'utf-8');
+    } catch (err) {
+        console.log(err);
+    }
+    return object;
+}
+
+async function getJsonTempContent() {
+    let content;
+    try {
+        content = await fs.promises.readFile('temp.json', 'utf-8');
+    } catch (err) {}
+    if (content) {
+        return JSON.parse(content);
+    } else {
+        return [];
+    }
 }
 
 const dateNow = moment();
@@ -73,17 +97,21 @@ const d1 = new Date('1930-01-01');
 const d2 = new Date(currentDate);
 
 const dateRange = getDatesInRange(d1, d2);
-let weatherAsJson = [];
+
 for (let index in dateRange) {
     let datetime = new Date(dateRange[index]);
     let year = datetime.getFullYear();
-    let month = datetime.getMonth();
+    let month = datetime.getMonth() + 1;
     let day = datetime.getDate();
     let fullDate = `${('00' + day).slice(-2)}-${('00' + month).slice(
         -2
     )}-${year}`;
-    await scrap(fullDate, year, month, day);
+    //console.log(year, month, day, fullDate);
+    let weather = await scrap(fullDate, year, month, day);
+    await saveToJsonTempFile(weather);
 }
+
+const weatherAsJson = await fs.promises.readFile('temp.json', 'utf-8');
 
 const items = weatherAsJson;
 const replacer = (key, value) => (value === null ? '' : value); // specify how you want to handle null values here
