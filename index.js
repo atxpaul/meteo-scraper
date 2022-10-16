@@ -93,7 +93,7 @@ async function getJsonTempContent() {
 const dateNow = moment();
 const currentDate = dateNow.format('YYYY/MM/DD');
 
-const d1 = new Date('1930-01-01');
+const d1 = new Date('2022-09-01');
 const d2 = new Date(currentDate);
 
 const dateRange = getDatesInRange(d1, d2);
@@ -111,7 +111,7 @@ for (let index in dateRange) {
     await saveToJsonTempFile(weather);
 }
 
-const weatherAsJson = await fs.promises.readFile('temp.json', 'utf-8');
+const weatherAsJson = await getJsonTempContent();
 
 const items = weatherAsJson;
 const replacer = (key, value) => (value === null ? '' : value); // specify how you want to handle null values here
